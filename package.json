@@ -1,8 +1,20 @@
 {
   "name": "react-textcomplete",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "WIP React textcomplete component",
   "main": "textcomplete.js",
   "author": "Brent Jackson",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "jsx -x jsx src/ ."
+  },
+  "peerDependencies": {
+    "react": "^0.12.2"
+  },
+  "dependencies": {
+    "fuzzy": "^0.1.0"
+  },
+  "devDependencies": {
+    "react-tools": "^0.12.2"
+  }
 }

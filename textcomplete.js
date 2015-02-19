@@ -1,4 +1,3 @@
-/** @jsx React.DOM */
 
 // WIP - Do not use this (yet)
 
@@ -12,7 +11,7 @@
 var React = require('react');
 var fuzzy = require('fuzzy');
 
-module.exports = React.createClass({
+module.exports = React.createClass({displayName: "exports",
 
   getInitialState: function() {
     return {
@@ -114,7 +113,7 @@ module.exports = React.createClass({
     var self = this;
     var renderOptions = function(val) {
       return (
-        <option value={val}>{val}</option>
+        React.createElement("option", {value: val}, val)
       );
     };
     var selectStyle = {
@@ -127,24 +126,24 @@ module.exports = React.createClass({
     };
 
     return (
-      <div className="mb4">
-        {/* Pass parent props */}
-        <textarea
-          className="form-control"
-          ref="textarea"
-          value={this.state.value}
-          onChange={this.handleChange}
-          onKeyDown={this.handleKeyDown}
-        />
-        {/* Use ul with links */}
-        <select multiple
-          ref="multiselect"
-          style={selectStyle}
-          onChange={handleSelection}
-          className="form-control">
-          {this.state.matches.map(renderOptions)}
-        </select>
-      </div>
+      React.createElement("div", {className: "mb4"}, 
+        /* Pass parent props */
+        React.createElement("textarea", {
+          className: "form-control", 
+          ref: "textarea", 
+          value: this.state.value, 
+          onChange: this.handleChange, 
+          onKeyDown: this.handleKeyDown}
+        ), 
+        /* Use ul with links */
+        React.createElement("select", {multiple: true, 
+          ref: "multiselect", 
+          style: selectStyle, 
+          onChange: handleSelection, 
+          className: "form-control"}, 
+          this.state.matches.map(renderOptions)
+        )
+      )
     )
   }
 
