@@ -1,0 +1,8 @@
+{
+  "name": "react-textcomplete",
+  "version": "1.0.0",
+  "description": "WIP React textcomplete component",
+  "main": "textcomplete.js",
+  "author": "Brent Jackson",
+  "license": "MIT"
+}
