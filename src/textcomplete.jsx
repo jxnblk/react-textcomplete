@@ -2,15 +2,24 @@
 // WIP - Do not use this (yet)
 
 // To do:
-// - regex match
-// - multiple strategies
-// - handle return characters
-// - handle key events
-// - positioning based on cursor
-// - prop for max number of matches to show in menu list
+// - [ ] regex match
+// - [ ] multiple strategies
+// - [ ] handle multiple lines
+// - [ ] handle key events
+//   - [x] up/down to select
+//   - [x] return to complete
+//   - [ ] esc to cancel autocomplete
+//   - [ ] tab to complete
+// - [~] positioning based on cursor (copypastad from github)
+// - [ ] prop for max number of matches to show in menu list
 
 var React = require('react');
 var fuzzy = require('fuzzy');
+try {
+  var caret = require('./lib/caret-position');
+} catch(e) {
+  var caret = false;
+}
 
 module.exports = React.createClass({
 
@@ -22,6 +31,10 @@ module.exports = React.createClass({
       cursorPosition: 0,
       matches: [],
       selectedMatch: -1,
+      anchor: {
+        top: 0,
+        left: 0,
+      }
     }
   },
 
@@ -39,7 +52,8 @@ module.exports = React.createClass({
 
   parseWords: function(string) {
     var words = string.split(' ');
-    var words = string.split(/[\n\r\s]+/);
+    // Split lines separately
+    //var words = string.split(/[\n\r\s]+/);
     var position = 0;
     words.map(function(word, i) {
       var wordobj = {
@@ -63,7 +77,6 @@ module.exports = React.createClass({
       }
     });
     this.setState({ currentWord: currentWord });
-    this.getMenuPosition();
     return currentWord;
   },
 
@@ -73,7 +86,17 @@ module.exports = React.createClass({
     var matches;
     var currentWord = this.setCurrentWord(words, position);
     matches = this.fuzzyMatch(words[currentWord].value);
+    if (!this.state.matches.length) {
+      this.getCaretPosition();
+    }
     this.setState({ matches: matches });
+  },
+
+  getCaretPosition: function() {
+    if (!caret) { return false }
+    var $textarea = this.refs.textarea.getDOMNode();
+    var coordinates = caret($textarea, $textarea.selectionEnd);
+    this.setState({ anchor: coordinates });
   },
 
   completeWord: function(word) {
@@ -93,17 +116,6 @@ module.exports = React.createClass({
       $textarea.focus();
       //window.scrollTo(0, windowYPosition);
     });
-  },
-
-  getMenuPosition: function() {
-    var $dummy = this.refs.dummy.getDOMNode();
-    var dummyHTML = '';
-    this.state.words.forEach(function(word) {
-      dummyHTML += '<span>' + word.value + '</span> ';
-    });
-    $dummy.innerHTML = dummyHTML;
-    var $dummySpans = $dummy.querySelectorAll('span');
-    console.log($dummySpans, $dummySpans.item(this.state.currentWord));
   },
 
   handleChange: function(e) {
@@ -160,12 +172,6 @@ module.exports = React.createClass({
     }
   },
 
-  componentDidMount: function() {
-    //if (!document) return false;
-    //document.onKeydown = this.handleKeyDown;
-    this.getMenuPosition();
-  },
-
   render: function() {
     var self = this;
     var renderItems = function(val, i) {
@@ -173,16 +179,25 @@ module.exports = React.createClass({
       var handleClick = function(e) {
         self.completeWord(e.target.innerText);
       };
-      var linkClass = 'list-group-item ';
-      if (self.state.selectedMatch == i) {
+      var isActive = (self.state.selectedMatch == i);
+      var linkClass = 'xlist-group-item ';
+      if (isActive) {
         linkClass += 'active';
       }
+      var linkStyle = {
+        display: 'block',
+        lineHeight: '2',
+        padding: '0 5px',
+        backgroundColor: isActive ? 'blue' : '',
+        color: isActive ? 'white' : '',
+      };
       return (
         <a href="#!"
           key={key}
           ref={val}
           onKeyDown={this.handleKeyDown}
           className={linkClass}
+          style={linkStyle}
           onClick={handleClick}>
           {val}
         </a>
@@ -190,22 +205,19 @@ module.exports = React.createClass({
     };
 
     var containerStyle = {
-      //position: 'relative',
+      position: 'relative',
+      zIndex: 1,
     };
     var textareaStyle = {
     };
-    var listStyle = {
-      display: this.state.matches.length ? '' : 'none'
-    };
-
-    var dummyValue = this.state.value;
-    // Copy textarea style and className
-    var dummyStyle = {
-      color: 'white',
-      backgroundColor: 'tomato',
-      opacity: .5,
+    var menuStyle = {
+      display: this.state.matches.length ? '' : 'none',
       position: 'absolute',
-      bottom: 0
+      top: this.state.anchor.top + 20, // Seems magical – figure out better way to handle this
+      left: this.state.anchor.left -16,
+      backgroundColor: 'white',
+      border: '1px solid #ccc',
+      borderRadius: '3px'
     };
 
     return (
@@ -219,15 +231,10 @@ module.exports = React.createClass({
           onChange={this.handleChange}
           onKeyDown={this.handleKeyDown}
           />
-        <textarea
-          ref="dummy"
-          className="form-control"
-          style={dummyStyle}
-          readOnly />
         <div ref="menu"
-          className="list-group"
+          className="xlist-group"
           onKeyDown={this.handleKeyDown}
-          style={listStyle}>
+          style={menuStyle}>
           {this.state.matches.map(renderItems)}
         </div>
       </div>
